@@ -1,0 +1,6 @@
+The current supported commands are:
+
+• `!echo [sentence]`
+• `!when`
+
+Use `!help [command_name]` to learn more about a specific command.
