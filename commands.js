@@ -47,7 +47,7 @@ const wu = (args) => {
 
 const help = (args) => {
   var fs = require("fs");
-
+  var err = false;
   var filePath = "./help_refs/";
 
   switch (args[0]) {
@@ -60,8 +60,24 @@ const help = (args) => {
     case "when":
       filePath += "when";
       break;
+    default:
+      err = true;
+      break;
   }
-  return fs.readFileSync(filePath, "utf8");
+
+  try {
+    msg = fs.readFileSync(filePath, "utf8");
+  } catch (error) {
+    if (error.code == "EISDIR")
+      msg = "We couldn't help with this command. Did you type it correctly?";
+    else msg = "An error occured:" + error.message;
+  }
+
+  var msg;
+  // if (!err) msg = fs.readFileSync(filePath, "utf8");
+  //  else msg = "Unable to recognise command.";
+
+  return msg;
 };
 
 module.exports = {

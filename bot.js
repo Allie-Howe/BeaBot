@@ -2,7 +2,7 @@
 const Discord = require("discord.io"),
   winston = require("winston");
 //Import local files
-const auth = require("./auth.json"),
+const auth = require("../auth.json"),
   { echo, when, wu, help } = require("./commands");
 
 //Initialise bot
@@ -35,7 +35,7 @@ bot.on("message", (user, userID, channelID, message, evt) => {
     args = args.splice(1);
 
     if (!fromBot) {
-      msg = checkCommand(message, cmd, args);
+      msg = checkCommand(cmd, args);
 
       bot.sendMessage({
         to: channelID,
@@ -75,7 +75,7 @@ const addRemoveRole = (reaction, isAdding) => {
   }
 };
 
-const checkCommand = (message, cmd, args) => {
+const checkCommand = (cmd, args) => {
   switch (cmd) {
     case "echo":
       msg = echo(args);
