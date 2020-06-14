@@ -50,6 +50,9 @@ const help = (args) => {
   var err = false;
   var filePath = "./help_refs/";
 
+  if (args[0] == undefined) filePath += "general";
+  else filePath += args[0];
+  /*
   switch (args[0]) {
     case undefined:
       filePath += "general";
@@ -60,15 +63,18 @@ const help = (args) => {
     case "when":
       filePath += "when";
       break;
+    case "cat":
+      filePath += "cat";
+      break;
     default:
       err = true;
       break;
-  }
+  }*/
 
   try {
     msg = fs.readFileSync(filePath, "utf8");
   } catch (error) {
-    if (error.code == "EISDIR")
+    if (error.code == "EISDIR" || "ENOENT")
       msg = "We couldn't help with this command. Did you type it correctly?";
     else msg = "An error occured:" + error.message;
   }

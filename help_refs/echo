@@ -1,3 +1,3 @@
-`!echo [sentence]`:
+`echo [sentence]`:
 • Repeats any text placed after the command.
 • ex: `!echo this text is repeated`

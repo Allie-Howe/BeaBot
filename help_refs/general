@@ -1,6 +1,7 @@
 The current supported commands are:
 
-• `!echo [sentence]`
-• `!when`
+• `echo [sentence]`
+• `when`
 
-Use `!help [command_name]` to learn more about a specific command.
+Use `help [command_name]` to learn more about a specific command.
+Note: You'll need to preface each command with the "Bea Signal". By default, this is &.

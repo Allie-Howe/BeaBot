@@ -1,16 +1,21 @@
+const fetch = require("node-fetch");
+
 //Import libraries
-const Discord = require("discord.io"),
+const Discord = require("discord.js"),
   winston = require("winston");
+
 //Import local files
-const auth = require("../auth.json"),
+const auth = require("../auth.json"), //NOT IN GITHUB REPOSITORY
   { echo, when, wu, help } = require("./commands");
 
+const BEA_SIGNAL = "&";
+
 //Initialise bot
-const bot = new Discord.Client({
-  token: auth.token,
-  autorun: true,
+const client = new Discord.Client({
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
+
+client.login(auth.token);
 
 //Initialise winston logger
 const logger = winston.createLogger({
@@ -20,62 +25,59 @@ const logger = winston.createLogger({
   ),
 });
 
-//onReady - run when bot loads
-bot.on("ready", (evt) => {
-  logger.info("Logged in as '" + bot.username + "', ID " + bot.id);
+//onReady - run when client loads
+client.once("ready", () => {
+  logger.info(client.user.username + " has taken flight! ID " + client.user.id);
 });
 
 //onMessage - run when a message is sent to any channel in the server
-bot.on("message", (user, userID, channelID, message, evt) => {
-  if (message.substring(0, 1) == "!") {
-    var fromBot = userID == bot.id;
+client.on("message", (message) => {
+  if (!message.content.startsWith(BEA_SIGNAL) || message.author.bot) return;
+  const args = message.content.slice(BEA_SIGNAL.length).split(/ +/);
+  const cmd = args.shift().toLowerCase();
 
-    var args = message.substring(1).split(" ");
-    var cmd = args[0];
-    args = args.splice(1);
+  msg = doCommands(cmd, args);
 
-    if (!fromBot) {
-      msg = checkCommand(cmd, args);
-
-      bot.sendMessage({
-        to: channelID,
-        message: msg,
-      });
-    }
-  }
+  message.channel.send(msg);
 });
 
+//#region Reactions
 //onReactionAdd - run when a user adds a reaction to any message
-bot.on("messageReactionAdd", (reaction) => {
-  addRemoveRole(reaction, true);
+client.on("messageReactionAdd", (reaction, user) => {
+  addRemoveRole(reaction, user, true);
 });
 
 //onReactionRemoved - run when a user removes a reaction to any message
-bot.on("messageReactionRemove", (reaction) => {
-  addRemoveRole(reaction, false);
+client.on("messageReactionRemove", (reaction, user) => {
+  addRemoveRole(reaction, user, false);
 });
 
-const addRemoveRole = (reaction, isAdding) => {
-  const { message_id } = reaction.d,
+const addRemoveRole = (reaction, user, isAdding) => {
+  console.log(user);
+  if (reaction.partial) {
+    getCachedReaction(reaction);
+  }
+
+  const { id } = reaction.message,
     target_msg = 713885800173142105n;
-
-  if (message_id == target_msg) {
-    const serverID = 694190509442465832n,
-      roleID = 714795398996295682n,
-      userID = reaction.d.user_id;
-
-    if (isAdding)
-      bot.addToRole({ serverID, userID, roleID }, (err) => {
-        if (err) console.log(err);
-      });
-    else
-      bot.removeFromRole({ serverID, userID, roleID }, (err) => {
-        if (err) console.log(err);
-      });
+  if (id == target_msg) {
+    var role = reaction.message.guild.roles.get("714795398996295682");
+    if (isAdding) user.roles.add(role);
+    else user.roles.remove(role);
   }
 };
 
-const checkCommand = (cmd, args) => {
+const getCachedReaction = async (reaction) => {
+  try {
+    await reaction.fetch();
+  } catch (error) {
+    console.log("There was an error with fetching cached message: ", error);
+  }
+};
+//#endregion
+
+const doCommands = (cmd, args) => {
+  var msg;
   switch (cmd) {
     case "echo":
       msg = echo(args);
@@ -89,8 +91,24 @@ const checkCommand = (cmd, args) => {
     case "help":
       msg = help(args);
       break;
+    case "cat":
+      getCat().then((msg) => {
+        return msg;
+      });
+      break;
     default:
       msg = "Please provide a valid command.";
   }
   return msg;
+};
+
+const getCat = async () => {
+  try {
+    var { file } = await fetch("https://aws.random.cat/meow").then((response) =>
+      response.json()
+    );
+    return file;
+  } catch (error) {
+    return error;
+  }
 };
