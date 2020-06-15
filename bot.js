@@ -1,8 +1,7 @@
-const fetch = require("node-fetch");
-
 //Import libraries
 const Discord = require("discord.js"),
   winston = require("winston");
+const fetch = require("node-fetch");
 
 //Import local files
 const auth = require("../auth.json"), //NOT IN GITHUB REPOSITORY
@@ -15,7 +14,7 @@ const client = new Discord.Client({
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
 });
 
-client.login(auth.token);
+client.login(auth.token2);
 
 //Initialise winston logger
 const logger = winston.createLogger({
@@ -31,12 +30,12 @@ client.once("ready", () => {
 });
 
 //onMessage - run when a message is sent to any channel in the server
-client.on("message", (message) => {
+client.on("message", async (message) => {
   if (!message.content.startsWith(BEA_SIGNAL) || message.author.bot) return;
   const args = message.content.slice(BEA_SIGNAL.length).split(/ +/);
   const cmd = args.shift().toLowerCase();
 
-  msg = doCommands(cmd, args);
+  msg = await doCommands(cmd, args);
 
   message.channel.send(msg);
 });
@@ -76,7 +75,7 @@ const getCachedReaction = async (reaction) => {
 };
 //#endregion
 
-const doCommands = (cmd, args) => {
+const doCommands = async (cmd, args) => {
   var msg;
   switch (cmd) {
     case "echo":
@@ -92,9 +91,7 @@ const doCommands = (cmd, args) => {
       msg = help(args);
       break;
     case "cat":
-      getCat().then((msg) => {
-        return msg;
-      });
+      msg = await getCat();
       break;
     default:
       msg = "Please provide a valid command.";
